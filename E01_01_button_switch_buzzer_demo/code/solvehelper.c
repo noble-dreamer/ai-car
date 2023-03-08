@@ -11,7 +11,7 @@ extern uint16_t Egde[4][2][MT9V03X_W / 2];
  * @return {*}
  */
 
-float FirstOrderLeastSquare(float *X_array, float *Y_array, uint8_t point_num, float *coefficient)
+float FirstOrderLeastSquare(uint8_t *X_array, uint8_t *Y_array, uint8_t point_num, float *coefficient)
 {
     float sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0;
     for (uint8 i = 0; i < point_num; i++)
@@ -85,7 +85,7 @@ float Polyfit2(const float *x, const float *y, int n, float *coefficient)
  * @return {*}
  */
 #define N 1e-13 //最小值
-float SecondOrderLeastSquare(float *X_array, float *Y_array, uint8_t point_num, float *coefficient)
+void SecondOrderLeastSquare(uint8_t *X_array, uint8_t *Y_array, uint8_t point_num, float *coefficient)
 {
     float sum_x = 0, sum_y = 0, sum_xy = 0, sum_x2 = 0, sum_x3 = 0, sum_x4 = 0, sum_x2y = 0;
     float m1=0, m2=0, m3 =0;    float z1=0, z2=0, z3 =0;
@@ -119,58 +119,58 @@ float SecondOrderLeastSquare(float *X_array, float *Y_array, uint8_t point_num, 
  */
 void solve_quadratic_equation(float *coefficient, float *untie, uint8_t *root_count)
 {
-    float a, coefficient[1], c, delta, sqrtDelta;
+    float a, b, c, delta, sqrtDelta;
     const float ZERO = FLT_MIN_SELF; // min normalized positive value（1.175494351e-38F）
     const float EPS = FLT_MIN_SELF;
 
     *root_count = 0;
 
     a = coefficient[2];
-    coefficient[1] = coefficient[1];
+    b = coefficient[1];
     c = coefficient[0];
 
-    if (facoefficient[1]s(a - 0.0) < EPS)
+    if (fabs(a - 0.0) < EPS)
     {
-        if (facoefficient[1]s(coefficient[1] - 0.0) > EPS)
+        if (fabs(b - 0.0) > EPS)
         {
-            untie[0] = -c / coefficient[1];
+            untie[0] = -c / b;
             *root_count = 1;
         }
     } //一阶
     //类似位置作用：降次处理求解
     else
     {
-        coefficient[1] /= a;
+        b /= a;
         c /= a;
         a = 1.0;
 
-        delta = coefficient[1] * coefficient[1] - 4.0 * a * c;
+        delta = b * b - 4.0 * a * c;
         if (delta > ZERO)
         {
-            if (facoefficient[1]s(c - 0.0) < EPS) //若c = 0,由于计算误差,sqrt(coefficient[1]*coefficient[1] - 4*a*c）不等于|coefficient[1]|
+            if (fabs(c - 0.0) < EPS) //若c = 0,由于计算误差,sqrt(b*b - 4*a*c）不等于|b|
             {
                 untie[0] = 0.0;
-                untie[1] = -coefficient[1] / a;
+                untie[1] = -b / a;
             }
             else
             {
                 sqrtDelta = sqrt(delta);
-                if (coefficient[1] > 0.0)
+                if (b > 0.0)
                 {
-                    untie[0] = (-2.0 * c) / (coefficient[1] + sqrtDelta); //避免两个很接近的数相减,导致精度丢失
-                    untie[1] = (-coefficient[1] - sqrtDelta) / (2.0 * a);
+                    untie[0] = (-2.0 * c) / (b + sqrtDelta); //避免两个很接近的数相减,导致精度丢失
+                    untie[1] = (-b - sqrtDelta) / (2.0 * a);
                 }
                 else
                 {
-                    untie[0] = (-coefficient[1] + sqrtDelta) / (2.0 * a);
-                    untie[1] = (-2.0 * c) / (coefficient[1] - sqrtDelta); //避免两个很接近的数相减,导致精度丢失
+                    untie[0] = (-b + sqrtDelta) / (2.0 * a);
+                    untie[1] = (-2.0 * c) / (b - sqrtDelta); //避免两个很接近的数相减,导致精度丢失
                 }
             }
             *root_count = 2;
         }
-        else if (facoefficient[1]s(delta - 0.0) < EPS)
+        else if (fabs(delta - 0.0) < EPS)
         {
-            untie[0] = untie[1] = -coefficient[1] / (2.0 * a);
+            untie[0] = untie[1] = -b / (2.0 * a);
             *root_count = 2;
         }
         else
@@ -244,7 +244,7 @@ uint8_t solveMatrixVertices(uint8_t enSlope)
                                        MT9V03X_W,
                                        MT9V03X_H / 2,
                                        MT9V03X_H};
-#if fit_rder == 1
+
         float coefficient[2];
         float temp[2] = {0};
 

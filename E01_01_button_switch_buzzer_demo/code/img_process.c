@@ -9,11 +9,12 @@ extern uint16_t Egde[4][2][MT9V03X_W / 2];
 #endif
 extern float target_coord[2][object_num_limit];
 extern int globalTour[STATIC_ARRAY_SIZE][2];
-extern uint16_t A4_center = Center;
+extern uint16_t A4_center;
 extern uint16_t demarcate_center;
 extern uint16_t edge_size_limit;
-extern image_one_dimension[MT9V03X_IMAGE_SIZE];
+extern uint8_t image_one_dimension[MT9V03X_IMAGE_SIZE];
 extern BinaryThreshold binary_threshold;
+extern Equation equation;
 
 //vuint8 mt9v03x_finish_flag = 0;                                                  // 一场图像采集完成标志位
 //// 图像缓冲区  如果用户需要访问图像数据 最好通过tempImage来访问数据，最好不要直接访问缓冲区
@@ -1104,22 +1105,22 @@ AT_ITCM_SECTION_INIT(uint8_t A4checktarget(uint8_t *r_array))
 	memset(target_coord, 0, sizeof(target_coord));
 	if (!UpEdgeExtraction(r_array))
 	{
-		zf_log(0,"Please correct the location of the A4")
+		zf_log(0,"Please correct the location of the A4");
 		return 0;
 	}
 	if (!DownEdgeExtraction(r_array))
 	{
-		zf_log(0,"Please correct the location of the A4")
+		zf_log(0,"Please correct the location of the A4");
 		return 0;
 	}
 	if (!LeftEdgeExtraction(r_array))
 	{
-		zf_log(0,"Please correct the location of the A4")
+		zf_log(0,"Please correct the location of the A4");
 		return 0;
 	}
 	if (!RightEdgeExtraction(r_array))
 	{
-		zf_log(0,"Please correct the location of the A4")
+		zf_log(0,"Please correct the location of the A4");
 		return 0;
 	}
 	if (!solveMatrixVertices(1))
@@ -1146,7 +1147,7 @@ AT_ITCM_SECTION_INIT(uint8_t A4checktarget(uint8_t *r_array))
 	if (fabs(up_side_length - down_side_length) - edges_difference_degree > FLT_MIN_SELF || fabs(left_side_length - right_side_length) - edges_difference_degree > FLT_MIN_SELF)
 	{
 		/*这里也看出来,如果放的不够正,上下边线长度不太行,就会导致报错*/
-		zf_log(0,"Please correct the location of the A4")
+		zf_log(0,"Please correct the location of the A4");
 		return 0;
 	}
 

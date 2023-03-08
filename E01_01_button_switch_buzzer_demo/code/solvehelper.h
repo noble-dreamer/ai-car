@@ -9,9 +9,9 @@
 
 #include "zf_common_headfile.h"
 /* 辅助公式 */
-float FirstOrderLeastSquare(float *X_array, float *Y_array, uint8_t point_num, float *coefficient);
+float FirstOrderLeastSquare(uint8_t *X_array, uint8_t *Y_array, uint8_t point_num, float *coefficient);
 float Polyfit2(const float *x, const float *y, int n, float *coefficient);
-float SecondOrderLeastSquare(float *X_array, float *Y_array, uint8_t point_num, float *coefficient);
+void SecondOrderLeastSquare(uint8_t *X_array, uint8_t *Y_array, uint8_t point_num, float *coefficient);
 void solve_quadratic_equation(float *coefficient, float *untie, uint8_t *root_count);
 /* 主要函数 */
 uint8_t solveMatrixVertices(uint8_t enSlope);

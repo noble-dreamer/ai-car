@@ -6,11 +6,12 @@
  */
 #ifndef _WAYSEARCH_H
 #define _WAYSEARCH_H
+
+
 #include "zf_common_headfile.h"
+
 #define STATIC_ARRAY_SIZE 24
 extern Coord coord;
-extern float target_coord[2][object_num_limit];
-
 extern int globalTour[STATIC_ARRAY_SIZE][2];
 // N : number of city point
 // bestDistanceLength : best distance length
