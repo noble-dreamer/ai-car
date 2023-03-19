@@ -69,13 +69,19 @@ uint8_t Carry = 0;
 /*
     车体速度的基变量。
 */
-uint16_t straight_speed = 25000;
-uint16_t rotation_speed = 13000;
-uint16_t carry_speed = 25000;
+
+float straight_speed_x = 0;
+float straight_speed_y = 0;
+float target_straight_speed_x = 0;
+float target_straight_speed_y = 0;
+
+float rotation_speed = 0;
+float target_rotation_speed = 0;
+float carry_speed = 0;
 float mProport = 0;
-uint8_t increase_adjust_count = IncreaseOrder;
-uint8_t decrease_adjust_count = DecreaseOrder;
+
 int8_t rotation_direction = 0;
+
 float deviation_radian, pan_direction = 5000, scale_factor = 0;
 float test_car_x = 0, test_car_y = 0;
 float growthRateMultiplier = -1; //增长比例乘数
@@ -104,20 +110,35 @@ uint8_t image_one_dimension[MT9V03X_IMAGE_SIZE] = {0};
 BinaryThreshold binary_threshold = {0};
 Equation equation = {0};
 
+
+
+
+
+
+
+/*
+这里放置所有基变量,包括location,motor等
+*/
+extern struct motorcontrol MotorControl;
+extern struct motorcontrol *thisMotorControl;
+extern struct location car_location;
+extern struct location *thiscar_location;
+
 int main(void)
 {
     clock_init(SYSTEM_CLOCK_600M);  // 不可删除
     debug_init();                   // 调试端口初始化
 
     // 此处编写用户代码 例如外设初始化代码等
-	test_imgprocess();
+	test_encoder_get();
+    //test_imgprocess();
     // 此处编写用户代码 例如外设初始化代码等
-//    while(1)
-//    {
-//        // 此处编写需要循环执行的代码
-//        
-//        // 此处编写需要循环执行的代码
-//    }
+    //while(1)
+    //{
+    //    // 此处编写需要循环执行的代码
+    //    
+    //    // 此处编写需要循环执行的代码
+    //}
 	return 0;
 }
 

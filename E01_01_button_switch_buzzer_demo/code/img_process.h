@@ -9,7 +9,6 @@
 #include "zf_common_headfile.h"
 #define KERNEL_SIZE 3
 #define Sigma 0.8
-#define object_num_limit 18
 #define OBJNUM 18           //实际目标数量,不搬运且需回到原点时，目标数量+1
 #define target_size 20
 

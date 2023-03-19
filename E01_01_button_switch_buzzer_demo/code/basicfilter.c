@@ -306,14 +306,14 @@ float kalmanFilter_X(float prolonged_credibility, float temporary_credibility)
     // Discrete Kalman filter time update equations - Time Update ("Predict")
     // Update xhat - Project the state ahead
     /* Step 1 */
-    object_property += position_time_resolution * (temporary_credibility - bias);
+    object_property += delta_T * (temporary_credibility - bias);
 
     // Update estimation error covariance - Project the error covariance ahead
     /* Step 2 */
-    P[0][0] += position_time_resolution * (position_time_resolution * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
-    P[0][1] -= position_time_resolution * P[1][1];
-    P[1][0] -= position_time_resolution * P[1][1];
-    P[1][1] += Q_temporary_bias * position_time_resolution;
+    P[0][0] += delta_T * (delta_T * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
+    P[0][1] -= delta_T * P[1][1];
+    P[1][0] -= delta_T * P[1][1];
+    P[1][1] += Q_temporary_bias * delta_T;
 
     // Discrete Kalman filter measurement update equations - Measurement Update ("Correct")
     // Calculate Kalman gain - Compute the Kalman gain
@@ -370,14 +370,14 @@ float kalmanFilter_Y(float prolonged_credibility, float temporary_credibility)
     // Discrete Kalman filter time update equations - Time Update ("Predict")
     // Update xhat - Project the state ahead
     /* Step 1 */
-    object_property += position_time_resolution * (temporary_credibility - bias);
+    object_property += delta_T * (temporary_credibility - bias);
 
     // Update estimation error covariance - Project the error covariance ahead
     /* Step 2 */
-    P[0][0] += position_time_resolution * (position_time_resolution * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
-    P[0][1] -= position_time_resolution * P[1][1];
-    P[1][0] -= position_time_resolution * P[1][1];
-    P[1][1] += Q_temporary_bias * position_time_resolution;
+    P[0][0] += delta_T * (delta_T * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
+    P[0][1] -= delta_T * P[1][1];
+    P[1][0] -= delta_T * P[1][1];
+    P[1][1] += Q_temporary_bias * delta_T;
 
     // Discrete Kalman filter measurement update equations - Measurement Update ("Correct")
     // Calculate Kalman gain - Compute the Kalman gain
@@ -436,7 +436,7 @@ float kalmanFilterHomogeneous(float prolonged_credibility, float temporary_credi
 
     // Update estimation error covariance - Project the error covariance ahead
     /* Step 2 */
-    P[0][0] += (position_time_resolution * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
+    P[0][0] += (delta_T * P[1][1] - P[0][1] - P[1][0] + Q_object_property);
     P[0][1] -= P[1][1];
     P[1][0] -= P[1][1];
     P[1][1] += Q_temporary_bias;
@@ -484,7 +484,7 @@ float kalman_gyro_enc_combine(float gyro_speed, float enc_speed)
     P_angle += Q_angle;
     K_angle = P_angle / (P_angle + R_angle);
     P_angle = (1 - K_angle) * P_angle;
-    angle += (gyro_speed + K_angle * (enc_speed - gyro_speed)) * position_time_resolution; // angle,应该是speed？
+    angle += (gyro_speed + K_angle * (enc_speed - gyro_speed)) * delta_T; // angle,应该是speed？
     return angle;
 }
 

@@ -9,7 +9,10 @@
 #include "zf_common_headfile.h"
 
 void test_imgprocess();
-
+void test_motor_stright();
+void test_encoder_get();
+void test_imu_filter();
+void test_motor_turnround();
 
 
 #endif

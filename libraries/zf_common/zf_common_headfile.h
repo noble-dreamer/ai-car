@@ -118,10 +118,10 @@
 //===================================================Ӧ�������===================================================
 
 //===================================================�û��Զ����ļ�===================================================
-#include "location.h"
-#include "imufilter.h"
-#include "communication.h"
 #include "main.h"
+#include "imufilter.h"
+#include "location.h"
+#include "communication.h"
 #include "img_process.h"
 #include "motor.h"
 #include "waysearch.h"

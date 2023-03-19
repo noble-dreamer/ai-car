@@ -1,6 +1,5 @@
 #include "imufilter.h"
 
-#define delta_T    0.001f  //计算间隔这个跟position_time_resolution是一样的，所以后面location的时候就不需要在乘以position_time_resolution
 #define M_PI       3.14159f
 
 static float I_ex, I_ey, I_ez; //误差积分
@@ -75,6 +74,7 @@ void gyroOffset_init(void) /////////陀螺仪零飘初始化
 
 #define alpha           0.3f
 
+//转换陀螺仪的值
 void IMU_getValues()
 {
     //imu_data.acc_x =  imu963ra_acc_transition(imu963ra_acc_x);
@@ -249,7 +249,7 @@ void IMU_getEulerianAngles(void)
     imu963ra_get_gyro ();
     imu963ra_get_mag ();
 
-    IMU_getValues();
+    IMU_getValues();//可以在中断中获得
     IMU_AHRSupdate(imu_data.gyro_x,imu_data.gyro_y,imu_data.gyro_z,imu_data.acc_x,imu_data.acc_y,imu_data.acc_z,imu_data.mag_x,imu_data.mag_y,imu_data.mag_z);
     float q0 = Q_info.q0;
     float q1 = Q_info.q1;
@@ -279,6 +279,7 @@ void IMU_getEulerianAngles(void)
     eulerAngle.roll = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1); // roll
     eulerAngle.yaw = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1); // yaw
 /*   姿态限制*/
+
     if (eulerAngle.roll > M_PI/2 || eulerAngle.roll < -M_PI/2) {
         if (eulerAngle.pitch > 0) {
             eulerAngle.pitch = M_PI - eulerAngle.pitch;

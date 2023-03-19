@@ -2,7 +2,8 @@
 #define _SELF_MAIN_H
 
 #include "zf_common_headfile.h"
-
+#define delta_T    0.1f  //计算间隔这个跟position_time_resolution是一样的，所以后面location的时候就不需要在乘以position_time_resolution
+#define object_num_limit 18
 #define FLT_MIN_SELF 0.000001
 /* 系数：升序 */
 #define fit_rder  1 /* 拟合阶数 */
@@ -52,20 +53,34 @@ typedef struct
     float carry_distance;
 }Coord;
 
+typedef struct 
+{
+    float radian_present_error;
+    float radian_before_error;
+    float radian_sum_error;
+    float bodywork_Kp;
+    float bodywork_Ki;
+    float bodywork_Kd;
+} radian_PID;
+
 typedef struct
 {
     float car_yaw_radian;         /*用脖子想想一下，车子转向实际上只用到了yaw角度*/
     float before_self_yaw_radian;
-    float target_relative_radian; /* 目标位置与车前行方向弧度差，目标相对车更靠近x轴为负值 */
-    float toBeCorrectedSlope;     /* 边界修正角度 */
+    //float target_relative_radian; /* 目标位置与车前行方向弧度差，目标相对车更靠近x轴为负值 */
+    //float toBeCorrectedSlope;     /* 边界修正角度 */
+                                  /* 是不是要修正代码采取不转向,保持车身姿态的方法*/
     float target_point_radian;    /* 旋转目标角度 */
+
     float position_adjust_radian;
+    radian_PID radian_pid;
 } Stance;
 
 typedef struct
 {
     float Half_length;
     float Half_width;
+    float wheel_distance;
     double Encoder2Velocity;
 } CarBodySize;
 
@@ -80,7 +95,7 @@ typedef struct
 typedef struct
 {
     float Kp, Ki, Kd;
-    int32_t set_value;
+    int32_t set_value;     //set_value = left_front.encode_value_goal/ car_body_size.Encoder2Velocity;
     float set_error_value; //用于改进set_encode_data,也就是改进速度
     int32_t present_value; //计划输出量-当前检测量
     float present_error, before_error, b_before_error;
@@ -93,6 +108,10 @@ typedef struct
     uint8_t dir;
     int32_t set_encode_data;
     int32_t get_encode_data;
+
+    float   wheel_speed;
+    float   target_wheel_speed;
+    
     PID pid;
 } Motor_info;
 
@@ -121,6 +140,7 @@ typedef struct
     float yaw;       //翻滚角
 } euler_param_t;
 
+
 typedef struct
 {
     lpuart_handle_t comm_lpuartHandle;
@@ -148,5 +168,9 @@ typedef struct
     float coefficient_Y_left[fit_rder + 1];
     float coefficient_Y_right[fit_rder + 1];
 } Equation;
+
+
+
+
 
 #endif

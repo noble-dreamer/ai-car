@@ -6,7 +6,6 @@
  */
 #ifndef _IMUFILTER_H
 #define _IMUFILTER_H
-#include "zf_common_headfile.h"
 
 typedef struct{
     float acc_x;
@@ -36,9 +35,9 @@ typedef struct {
     float Zdata;
 } gyro_param_t;
 
+#include "zf_common_headfile.h"
 
-
-void gyro_offset_init(void);
+void gyroOffset_init(void);
 
 float fast_sqrt_InvSqrt(float x);
 

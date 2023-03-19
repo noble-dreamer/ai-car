@@ -618,3 +618,5 @@ void annealingDeterminesPath()
     //        PRINTF("index:%d,%d\n", i, city_result[i]);
     //    }
 }
+
+    

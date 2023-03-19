@@ -33,11 +33,14 @@
 * 2022-09-21        SeekFree            first version
 ********************************************************************************************************************/
 
-#include "zf_common_headfile.h"
+
 #include "isr.h"
 
+extern struct motorcontrol MotorControl;
+extern struct motorcontrol *thisMotorControl;
 
-
+extern struct location car_location;
+extern struct location *thiscar_location;
 
 void CSI_IRQHandler(void)
 {
@@ -49,6 +52,9 @@ void PIT_IRQHandler(void)
 {
     if(pit_flag_get(PIT_CH0))
     {
+        IMU_getEulerianAngles(); //由此可以获得IMU的值
+        thiscar_location->radiansGet(thiscar_location);
+        thisMotorControl->carspeedcontrol_radian(thisMotorControl);
         pit_flag_clear(PIT_CH0);
     }
     

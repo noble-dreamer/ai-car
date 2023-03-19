@@ -8,7 +8,7 @@
 #define _BASICFILTER_H
 #include "zf_common_headfile.h"
 
-#define position_time_resolution 0.001  //间隔时间
+//#define position_time_resolution 0.001  //间隔时间
 #define filter_length 8          //窗体大小 
 #define filter_length_X 4        //窗体大小
 #define filter_length_Y 4        //窗体大小

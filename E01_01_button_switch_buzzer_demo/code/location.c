@@ -39,8 +39,9 @@ const static uint8_t scheme_picture_five[2][12] = {{'1', '2', '3', '1', '3', '3'
 const static float scheme_coord_six[2][12] = {{50, 190, 410, 130, 290, 110, 390, 70, 170, 250, 310, 450}, {90, 50, 70, 130, 110, 210, 190, 310, 270, 290, 350, 330}};
 const static uint8_t scheme_picture_six[2][12] = {{'1', '3', '2', '2', '1', '3', '1', '2', '1', '3', '2', '3'}, {'3', '4', '1', '3', '4', '2', '2', '2', '1', '1', '4', '3'}};
 
+
 /*
-    当你第一次使用这种语法的时候请一定要记得,要先给this分配内存，不能生命struct location *this这样会没有内存分配
+    当你第一次使用这种语法的时候请一定要记得,要先给this分配内存，不能声明struct location *this这样会没有内存分配
     struct main b;
     struct main *this = &b;
     this->test = &test;这样才是正确的分配了内存
@@ -50,47 +51,10 @@ const static uint8_t scheme_picture_six[2][12] = {{'1', '3', '2', '2', '1', '3',
     或者像这样直接输入地址
     AntColonySystemInitialize(&acs);
 	acs.AntColonySystem_Constructor(&acs, N);
-
 */
-struct location
-{
-    /* data */
-    StateFlags *state_flags;
-    Coord *coord;
-    Stance *stance;
-    euler_param_t *eulerAngle;
-    Motor_info *left_front ;
-    Motor_info *right_front;
-    Motor_info *left_back  ;
-    Motor_info *right_back ;
-    CarBodySize *car_body_size;
-    imu_param_t *imu_data;
 
-    float (*target_coord)[object_num_limit];
-    uint8_t (*target_lable)[12];
-    uint16_t (*city_result);
-    uint8_t *object_num;
-    int8_t *current_obj_index;
-    float *compensate_radian;
-    bool *target_update;
-    uint8_t *A4_select;
-    uint8_t *Carry;
-
-    void (*location_Constructor)(struct location *this);
-    void (*location_Destructor)(struct location *this);
-    float(*encoder_to_radian)(struct location *this);
-    float(*location_solve_inverse_movement_rotation_speed)(struct location *this);
-    float(*location_solve_gyro_rotation_speed)(struct location *this);
-    float(*gyroMixFilter)(struct location *this);
-    float*(*accMixFilter)(struct location *this);
-    void (*radiansGet)(struct location *this);
-    void (*positioningSystemInit)(struct location *this, uint8_t num);
-    void (*coordChange)(struct location *this);
-    void (*nextRecentTargetDiscrimination)(struct location *this);
-    uint8_t (*currentStageCompleteJudgment)(struct location *this);
-    void (*positioningSystemChange)(struct location *this);
-    void (*regularRadians)(float *radian); 
-};
+struct location car_location;
+struct location *thiscar_location = &car_location;
 
 void location_Constructor(struct location *this)
 {
@@ -134,9 +98,11 @@ void location_Destructor(struct location *this)
 	{
 	}
 }
+
+/* 获取角度方式或许可以改变了 */
 /* 内部函数 */
 /**
- * @description: 逆运动学解算角速度。
+ * @description: 逆运动学解算角速度。顺时针为正
  * @param {&struct location this}
  * @return {*}
  */
@@ -197,7 +163,8 @@ float gyroMixFilter(struct location *this)
 
 }
 
-//我们IMU只用来传输出了角度，我们还需要加速度计的数字,原式中完全舍弃了加速度计的值，只使用了编码器加上
+//我们IMU只用来传输出了角度，我们还需要加速度计的数字
+//原式中完全舍弃了加速度计的值，只使用了编码器加上陀螺仪偏移.
 float *accMixFilter(struct location *this)
 {
     if (this != 0)
@@ -217,15 +184,17 @@ float *accMixFilter(struct location *this)
         //    acc_Y = 0 - hullMovingWindow((icm_acc_y - acc_Y_drift_value - acc_Y_drift_value_2) / 4096.0) * Gravity_Acc;
         //    acc_X = acc_X * sin(stance.car_yaw_radian) + acc_X * sin(stance.car_yaw_radian - 1.570796);
         //		acc_Y = acc_Y * sin(stance.car_yaw_radian) + acc_X * sin(stance.car_yaw_radian - 1.570796);
-        // V[0] = V[0] + (acc_X + (acc_X - A[0]) / 2.0)*position_time_resolution;
-        // V[1] = V[1] + (acc_Y + (acc_Y - A[1]) / 2.0)*position_time_resolution;
+        // V[0] = V[0] + (acc_X + (acc_X - A[0]) / 2.0)*delta_T;
+        // V[1] = V[1] + (acc_Y + (acc_Y - A[1]) / 2.0)*delta_T;
+
         float Y_inverse_motion_solution_speed = /* hullMovingWindow_Y */ ((this->left_front->get_encode_data + this->right_front->get_encode_data + this->left_back->get_encode_data + this->right_back->get_encode_data) * this->car_body_size->Encoder2Velocity /4.0);
         float X_inverse_motion_solution_speed = /* hullMovingWindow_X */ ((this->left_front->get_encode_data - this->right_front->get_encode_data - this->left_back->get_encode_data + this->right_back->get_encode_data) * this->car_body_size->Encoder2Velocity /4.0);
-        /*x,y实际的速度*/                             //this->eulerAngle->yaw,两种都可以，也可以直接把stance那个地址指向yaw的地址
+
+        /*x,y实际的速度*/                         //this->eulerAngle->yaw,两种都可以，也可以直接把stance那个地址指向yaw的地址
+        /* 因为车在移动过程中,车身会有实际偏移角度所以要考虑进去 */
         V[0] = Y_inverse_motion_solution_speed * cos(this->stance->car_yaw_radian) + X_inverse_motion_solution_speed * sin(this->stance->car_yaw_radian);
         V[1] = Y_inverse_motion_solution_speed * sin(this->stance->car_yaw_radian) - X_inverse_motion_solution_speed * cos(this->stance->car_yaw_radian);
-        //    V[0] = kalmanFilter_X(X_inverse_motion_solution_speed, acc_X);
-        //    V[1] = kalmanFilter_Y(Y_inverse_motion_solution_speed, acc_Y);
+        
         // PRINTF("VY:%f,%f\n",(left_front.get_encode_data + right_front.get_encode_data + left_back.get_encode_data + right_back.get_encode_data) * car_body_size.Encoder2Velocity / 4.0, Y_inverse_motion_solution_speed);
         // PRINTF("VX:%f,%f\n",(left_front.get_encode_data - right_front.get_encode_data - left_back.get_encode_data + right_back.get_encode_data) * car_body_size.Encoder2Velocity / 4.0, X_inverse_motion_solution_speed);
         //    PRINTF(":%f,%f\n",Y_inverse_motion_solution_speed,X_inverse_motion_solution_speed);
@@ -251,18 +220,20 @@ void regularRadians(float *radian)
 }
 
 /**
- * @description: 车体转动角度更新
+ * @description: 车体转动角度更新,采用了新方式,只考虑互补滤波,如不准确在考虑加入逆运动解算.
  * @param {&struct location this}
  * @return {*}
  */
 void radiansGet(struct location *this)
 {
-    #define Proportion 0.3 //看情况调整
+    #define Proportion 1 //看情况调整
     /* imu数据处理，因为是在中断当中处理所以可以给出准确的处理时间 */
-    this->stance->car_yaw_radian = (this->eulerAngle->yaw * Proportion);//以互补滤波以基准，上面加上了麦克钠姆轮的速度，有一定积分误差
-    this->stance->car_yaw_radian += (this->location_solve_inverse_movement_rotation_speed(this) *position_time_resolution *(1-Proportion));
 
-    //this->stance->car_yaw_radian += gyroMixFilter(this)*position_time_resolution; // kalman result, includes the integration process */ * position_time_resolution;
+    this->stance->car_yaw_radian = (this->eulerAngle->yaw * Proportion);//以互补滤波以基准，有一定积分误差
+
+    //this->stance->car_yaw_radian += (this->location_solve_inverse_movement_rotation_speed(this) *delta_T *(1-Proportion));
+
+    //this->stance->car_yaw_radian += gyroMixFilter(this)*delta_T; // kalman result, includes the integration process */ * delta_T;
     // stance.car_yaw_radian -= compensate_radian;
     this->regularRadians(&this->stance->car_yaw_radian);
 
@@ -404,6 +375,7 @@ void positioningSystemInit(struct location *this, uint8_t num)
     }
 }
 
+
 /**
  * @description: 坐标更新
  * @param {&struct location this}
@@ -414,8 +386,8 @@ void coordChange(struct location *this)
     /* icm数据处理 */
     //结合陀螺仪再次分配位移
     // float path_displacement = accMixFilter();
-    // coord.current_coord_x += path_displacement * cos(stance.car_yaw_radian) * position_time_resolution;
-    // coord.current_coord_y += path_displacement * sin(stance.car_yaw_radian) * position_time_resolution;
+    // coord.current_coord_x += path_displacement * cos(stance.car_yaw_radian) * delta_T;
+    // coord.current_coord_y += path_displacement * sin(stance.car_yaw_radian) * delta_T;
     float *V /* X、Y方向速度 */;
     static float D[2] = {0} /* X、Y方向前一时刻速度 */;
     if (this->state_flags->integralDriftClearanceFlag) //停车时抑制积分漂移
@@ -423,15 +395,16 @@ void coordChange(struct location *this)
         D[0] = 0;
         D[1] = 0;
     }
+    
     V = this->accMixFilter(this);
-    this->coord->current_coord_x += (*(V)) * position_time_resolution * 100;         //单位换算为cm，v的单位原本是m/s
-    this->coord->current_coord_y += (*(V + 1)) * position_time_resolution * 100;     //单位换算为cm，v的单位原本是m/s
-    //    coord.current_coord_x = coord.current_coord_x + (*(V) + (*(V)-D[0]) / 2.0) * position_time_resolution * 100;
-    //    coord.current_coord_y = coord.current_coord_y + (*(V + 1) + (*(V + 1) - D[1]) / 2.0) * position_time_resolution * 100;
+    this->coord->current_coord_x += (*(V)) * delta_T * 100;         //单位换算为cm，v的单位原本是m/s
+    this->coord->current_coord_y += (*(V + 1)) * delta_T * 100;     //单位换算为cm，v的单位原本是m/s
+    //    coord.current_coord_x = coord.current_coord_x + (*(V) + (*(V)-D[0]) / 2.0) * delta_T * 100;
+    //    coord.current_coord_y = coord.current_coord_y + (*(V + 1) + (*(V + 1) - D[1]) / 2.0) * delta_T * 100;
     //    D[0] = *(V);
     //    D[1] = *(V + 1);
-    //    coord.current_coord_x += *(V)*position_time_resolution * 100;       //单位换算为cm
-    //    coord.current_coord_y += *(V + 1) * position_time_resolution * 100; //单位换算为cm
+    //    coord.current_coord_x += *(V)*delta_T * 100;       //单位换算为cm
+    //    coord.current_coord_y += *(V + 1) * delta_T * 100; //单位换算为cm
     // PRINTF(":%f,%f,%f,%f\n", coord.current_coord_x, coord.current_coord_y, gyro_Z_drift_value, gyro_Z_drift_value_2);
 }
 
@@ -583,3 +556,29 @@ void positioningSystemChange(struct location *this)
     }
 }
 
+
+
+/**
+ * @description: 对各个函数指针赋值,也就是设置成员函数
+ * @param {*}
+ * @return {*}
+ * @brief 需放置在最后,因为前面要先声明了才能指过去
+ */
+void location_Init(struct location *this)
+{
+
+    this->location_Constructor = location_Constructor;
+    this->location_Destructor  = location_Destructor;
+    this->location_solve_inverse_movement_rotation_speed = location_solve_inverse_movement_rotation_speed;
+    this->location_solve_gyro_rotation_speed = location_solve_gyro_rotation_speed;
+    this->gyroMixFilter        = gyroMixFilter;
+    this->accMixFilter         = accMixFilter;
+    this->regularRadians       = regularRadians;
+    this->radiansGet           = radiansGet;
+    this->positioningSystemInit= positioningSystemInit;
+    this->coordChange          = coordChange;
+    this->nextRecentTargetDiscrimination = nextRecentTargetDiscrimination;
+    this->currentStageCompleteJudgment = currentStageCompleteJudgment;
+    this->positioningSystemChange =  positioningSystemChange;
+
+}
